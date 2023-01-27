@@ -4,6 +4,7 @@
 **Description: Parses out R Source code from an R Markdown File
 **
 */
+
 #include <bits/stdc++.h>
 #include <fstream>
 #include <iostream>
@@ -11,7 +12,7 @@
 #include <sstream>
 #include <string>
 
-bool isValid(const std::string &, char); // check validity of filename
+bool isValid(const std::string &, bool &&); // check validity of filename
 void convertrmdtor(const std::string &, const std::string &);
 
 int main(int argc, char **argv) {
@@ -34,9 +35,9 @@ int main(int argc, char **argv) {
 
   const std::string inputFileName{argv[1]}; // Declare input file name as string
 
-  if (!isValid(
-          inputFileName,
-          'I')) { // Check if the file name ends with rmd and is otherwise valid
+  if (!isValid(inputFileName,
+               true)) { // Check if the file name ends with rmd and is otherwise
+                        // valid
     std::cerr << "Proposed Input File: " << inputFileName << " is invalid!\n";
     return 1;
   }
@@ -52,18 +53,20 @@ int main(int argc, char **argv) {
 
   std::string outputFileName{argv[2]}; // same for output filek
                                        //
-  if (!isValid(outputFileName, 'O')) {
+  if (!isValid(outputFileName, false)) {
     std::cerr << "Proposed Output File: " << outputFileName << " is invalid!\n";
     return 1;
-  } else {
-    std::cout << "Valid file name: " << outputFileName << std::endl;
-    return 0;
   }
+  convertrmdtor(inputFileName, outputFileName);
 }
 
-bool isValid(const std::string &filename, const char inOrOut) {
+bool isValid(const std::string &filename, bool &&inFile) {
   std::regex valid_r_file;
-  valid_r_file = (inOrOut == 'O') ? ("[A-Za-z0-9_].r") : ("[A-Za-z0-9_].rmd");
+  if (inFile)
+    valid_r_file = ("[A-Za-z0-9_]+.rmd");
+  else
+    valid_r_file = ("[A-Za-z0-9_]+.r");
+
   return std::regex_match(filename, valid_r_file);
 }
 
@@ -71,14 +74,22 @@ void convertrmdtor(const std::string &inputFileName,
                    const std::string &outputFileName) {
 
   std::string line;
-  std::regex r_tag_open{"```{r*}"};
-  std::regex r_tag_close{"```"};
+  std::regex r_tag_open{
+      "```\\{r.*\\}"};           // regex to match the opening r source code tag
+  std::regex r_tag_close{"```"}; // regex to close
 
   std::ifstream inputFile(inputFileName);
   std::ofstream outputFile(outputFileName);
 
   while (std::getline(inputFile, line)) {
     if (std::regex_match(line, r_tag_open)) {
+      while (std::getline(inputFile, line)) {
+        if (std::regex_match(line, r_tag_close))
+          break;
+        outputFile << line << std::endl;
+      }
     }
   }
+  inputFile.close();
+  outputFile.close();
 }
