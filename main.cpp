@@ -12,7 +12,7 @@
 #include <string>
 
 bool isValid(const std::string &, char); // check validity of filename
-void convertrmdtor(const std::ifstream &, std::ofstream &);
+void convertrmdtor(const std::string &, const std::string &);
 
 int main(int argc, char **argv) {
 
@@ -41,14 +41,17 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  std::ifstream inf{inputFileName};
+  std::ifstream inf(inputFileName);
 
   if (!inf) { // try to open file
     std::cerr << "Input File: " << inputFileName << " could not be read!\n";
     return 1;
   }
 
-  const std::string outputFileName{argv[2]}; // same for output file
+  inf.close();
+
+  std::string outputFileName{argv[2]}; // same for output filek
+                                       //
   if (!isValid(outputFileName, 'O')) {
     std::cerr << "Proposed Output File: " << outputFileName << " is invalid!\n";
     return 1;
@@ -64,9 +67,18 @@ bool isValid(const std::string &filename, const char inOrOut) {
   return std::regex_match(filename, valid_r_file);
 }
 
-void convertrmdtor(const std::ifstream &inf, std::ofstream &outf) {
-  while (inf) {
-    std::string strInput;
-    // std::getline(inf, strInput); must trouble shoot this issue
+void convertrmdtor(const std::string &inputFileName,
+                   const std::string &outputFileName) {
+
+  std::string line;
+  std::regex r_tag_open{"```{r*}"};
+  std::regex r_tag_close{"```"};
+
+  std::ifstream inputFile(inputFileName);
+  std::ofstream outputFile(outputFileName);
+
+  while (std::getline(inputFile, line)) {
+    if (std::regex_match(line, r_tag_open)) {
+    }
   }
 }
